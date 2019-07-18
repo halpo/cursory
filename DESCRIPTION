@@ -16,11 +16,13 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 6.1.1
 Imports:
     dplyr,
+    pkgcond,
     purrr,
     rlang,
     tidyselect
 Suggests:
     covr,
+    pkgcond,
     testthat
 URL: https://github.com/halpo/cursory
 BugReports: https://github.com/halpo/cursory/issues

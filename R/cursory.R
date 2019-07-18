@@ -19,6 +19,20 @@ NULL
 #'
 #' @inheritParams dplyr::summarise_all
 #' @param var.name Name of the column with variable names.
+#' @examples
+#' library(dplyr)
+#' library(cursory)
+#' data(iris)
+#'
+#' ## basic summary statistics for each variable in a data frame.
+#' cursory_all(group_by(iris, Species), lst(mean, sd))
+#'
+#' ## summary statistics for only numeric variables.
+#' cursory_if(iris, is.numeric, lst(mean, sd))
+#'
+#' ## summary statistics for specific variables.
+#' cursory_at(iris, vars(ends_with("Length")), lst(Variance = var))
+#'
 #' @export
 cursory_all <- function (.tbl, .funs, ..., var.name="Variable") UseMethod("cursory_all")
 
@@ -35,20 +49,21 @@ cursory_if <- function (.tbl, .predicate, .funs, ..., var.name="Variable") UseMe
 
 #' @export
 cursory_at.tbl <-
-function (.tbl, .vars, .funs, ...)
+function (.tbl, .vars, ...)
 {
-    parts <- purrr::map( tidyselect::vars_select(tbl_vars(.tbl), !!!.vars)
-              , cursory_1, .tbl=.tbl, .funs=.funs
-              , ...)
-    purrr::reduce(parts, union_all)
+    parts <- map( tidyselect::vars_select(tbl_vars(.tbl), !!!.vars)
+                , cursory_1, .tbl=.tbl
+                , ...)
+    reduce(parts, union_all)
 }
 if(FALSE){#@testing
     library(dbplyr)
     library(RSQLite)
     con <- DBI::dbConnect(RSQLite::SQLite(), ":memory:")
 
-    suppress_warnings( .tbl <- group_by(copy_to(con, iris, 'iris', overwrite=TRUE), Species)
-                     , "partial argument match")
+    pkgcond::suppress_warnings({
+        .tbl <- group_by(copy_to(con, iris, 'iris', overwrite=TRUE), Species)
+    }, "partial argument match")
     .vars <- setdiff(tbl_vars(.tbl), group_vars(.tbl))
     .funs <- lst(mean, sum)
     val <- cursory_at( .tbl, .vars, .funs)
@@ -56,41 +71,54 @@ if(FALSE){#@testing
 
 cursory_1 <- function(var, .tbl, .funs, ..., var.name="Variable")
 {
+    if (!is.list(.funs))
+        .funs <- structure(list(.funs), names = deparse(substitute(.funs)))
     select( mutate( summarise_at(.tbl, var, .funs, ...)
-                  , !!var.name := var)
+                  , !!var.name := !!var)
           , !!var.name, everything()
           )
 }
 
 #' @export
 cursory_at.tbl_df <-
-function (.tbl, .vars, .funs, ...)
+function (.tbl, .vars, ...)
 {
     purrr::map_dfr( tidyselect::vars_select(tbl_vars(.tbl), !!!.vars)
-                  , cursory_1, .tbl=.tbl, .funs=.funs
+                  , cursory_1, .tbl=.tbl
                   , ...)
+}
+if(FALSE){#@testing cursory_at with function passed to .funs
+    val <- cursory_at(iris, 1:2, mean)
+    expect_equal(names(val), c('Variable', 'mean'))
+
+    val <- cursory_if(iris, is.numeric, mean)
+    expect_equal(names(val), c('Variable', 'mean'))
+
+    val <- cursory_all(select(iris, -Species), mean)
+    expect_equal(names(val), c('Variable', 'mean'))
 }
 
 #' @export
 cursory_at.grouped_df <-
-function(.tbl, .vars, .funs, ...)
+function(.tbl, ...)
 {
-    group_by( NextMethod("cursory_at", .tbl, .vars=.vars, .funs=.funs, ...)
+    group_by( NextMethod("cursory_at")
             , !!!groups(.tbl)
             )
 }
-
-#' @export
-cursory_at.data.frame <- function(.tbl, ...) cursory_at(tbl_df(.tbl), ...)
+if(FALSE){#@testing
+    val <- cursory_all(group_by(iris, Species), lst(mean, sd))
+    expect_equal(group_vars(val), 'Species')
+    expect_equal(dim(val), c(12L, 4L))
+}
 
 
 #' @export
 cursory_all.tbl <-
-function(.tbl, .funs, ...)
+function(.tbl, ...)
 {
     cursory_at( .tbl = .tbl
               , .vars = setdiff(tbl_vars(.tbl), group_vars(.tbl))
-              , .funs = .funs
               , ...)
 }
 if(FALSE){#@testing
@@ -110,8 +138,26 @@ if(FALSE){#@testing
 }
 
 #' @export
-cursory_if.data.frame <-
-function(.tbl, .predicate, .funs, ...)
+cursory_if.tbl_df <-
+function(.tbl, .predicate, ...)
 {
-    cursory_all(select_if(.tbl, .predicate), .funs, ...)
+    cursory_all(select_if(.tbl, .predicate), ...)
 }
+if(FALSE){#@testing
+    data(iris)
+    val <- cursory_if(iris, is.numeric, lst(mean, sd))
+
+    expect_is(val, 'tbl_df')
+    expect_equal(dim(val), c(4L, 3L))
+}
+
+# data.frame wrappers ---------------------------------------------
+
+#' @export
+cursory_all.data.frame <- function(.tbl, ...) cursory_all(tbl_df(.tbl), ...)
+
+#' @export
+cursory_at.data.frame <- function(.tbl, ...) cursory_at(tbl_df(.tbl), ...)
+
+#' @export
+cursory_if.data.frame <- function(.tbl, ...) cursory_if(tbl_df(.tbl), ...)

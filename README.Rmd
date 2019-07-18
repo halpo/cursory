@@ -1,0 +1,64 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+options( stringsAsFactors = FALSE
+       , tidyverse.quiet = TRUE
+       )
+library(knitr)
+library(printr)
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+# cursory
+
+<!-- badges: start -->
+[![Travis build status](https://travis-ci.org/halpo/cursory.svg?branch=master)](https://travis-ci.org/halpo/cursory)
+[![Codecov test coverage](https://codecov.io/gh/halpo/cursory/branch/master/graph/badge.svg)](https://codecov.io/gh/halpo/cursory?branch=master)
+<!-- badges: end -->
+
+The goal of cursory is to make it easier to summarise data and look
+at your variables.  It builds off [`dplyr`](http://dplyr.tidyverse.org) 
+and [`purrr`](http://purrr.tidyverse.org).  It is also compatible with 
+[`dbplyr`](http://dbplyr.tidyverse.org) and remote data.
+
+## Installation
+
+You can install the released version of cursory from [CRAN](https://CRAN.R-project.org) with:
+
+``` r
+install.packages("cursory")
+```
+
+And the development version from [GitHub](https://github.com/) with:
+
+``` r
+# install.packages("devtools")
+devtools::install_github("halpo/cursory")
+```
+## Example
+
+This is a basic example which shows you how to solve a common problem:
+
+```{r example}
+library(dplyr)
+library(cursory)
+data(iris)
+
+## basic summary statistics for each variable in a data frame.
+cursory_all(group_by(iris, Species), lst(mean, sd)) %>% ungroup() 
+
+## summary statistics for only numeric variables. 
+cursory_if(iris, is.numeric, lst(Mean = mean, 'Std.Dev.' = sd))
+
+## summary statistics for specific variables. 
+cursory_at(iris, vars(ends_with("Length")), var)
+```
+
