@@ -57,8 +57,9 @@ function (.tbl, .vars, ...)
     reduce(parts, union_all)
 }
 if(FALSE){#@testing
-    library(dbplyr)
-    library(RSQLite)
+    requireNamespace('RSQLite')
+    requireNamespace('DBI')
+    requireNamespace('dbplyr')
     con <- DBI::dbConnect(RSQLite::SQLite(), ":memory:")
 
     pkgcond::suppress_warnings({
@@ -144,8 +145,7 @@ function(.tbl, .predicate, ...)
     cursory_all(select_if(.tbl, .predicate), ...)
 }
 if(FALSE){#@testing
-    data(iris)
-    val <- cursory_if(iris, is.numeric, lst(mean, sd))
+    val <- cursory_if(datasets::iris, is.numeric, lst(mean, sd))
 
     expect_is(val, 'tbl_df')
     expect_equal(dim(val), c(4L, 3L))

@@ -22,7 +22,10 @@ Imports:
     tidyselect
 Suggests:
     covr,
-    pkgcond,
-    testthat
+    datasets,
+    dbplyr,
+    testthat,
+    DBI,
+    RSQLite
 URL: https://github.com/halpo/cursory
 BugReports: https://github.com/halpo/cursory/issues
