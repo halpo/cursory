@@ -29,3 +29,4 @@ Suggests:
     RSQLite
 URL: https://github.com/halpo/cursory
 BugReports: https://github.com/halpo/cursory/issues
+Lifecycle: maturing
