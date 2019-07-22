@@ -9,6 +9,8 @@
 status](https://travis-ci.org/halpo/cursory.svg?branch=master)](https://travis-ci.org/halpo/cursory)
 [![Codecov test
 coverage](https://codecov.io/gh/halpo/cursory/branch/master/graph/badge.svg)](https://codecov.io/gh/halpo/cursory?branch=master)
+[![Lifecycle:
+maturing](https://img.shields.io/badge/lifecycle-maturing-blue.svg)](https://www.tidyverse.org/lifecycle/#maturing)
 <!-- badges: end -->
 
 The goal of cursory is to make it easier to summarise data and look at
