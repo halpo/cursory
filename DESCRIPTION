@@ -19,6 +19,7 @@ Imports:
     pkgcond,
     purrr,
     rlang,
+    tidymargins,
     tidyselect
 Suggests:
     covr,
