@@ -67,7 +67,12 @@ if(FALSE){#@testing
     }, "partial argument match")
     .vars <- setdiff(tbl_vars(.tbl), group_vars(.tbl))
     .funs <- lst(mean, sum)
-    val <- cursory_at( .tbl, .vars, .funs)
+    val <- cursory_at( .tbl, .vars, .funs, na.rm=TRUE)
+    expect_is(val, 'tbl_sql')
+
+    local.val <- collect(val)
+    expect_is(local.val, 'tbl_df')
+    expect_equal(dim(local.val), c(12L, 4L))
 }
 
 cursory_1 <- function(var, .tbl, .funs, ..., var.name="Variable")
