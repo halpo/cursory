@@ -1,5 +1,6 @@
 #' @importFrom tidymargins with_margins
 #' @importFrom pkgcond assert_that pkg_error
+#' @importFrom rlang quos
 NULL
 utils::globalVariables('.')
 
@@ -16,21 +17,41 @@ utils::globalVariables('.')
 #'
 #' @param .data a dataset
 #' @param key the comparison variable, such as case/control.
-#' @param ... a lazy list of variables to include in the description.
+#' @param .vars a lazy list of variables to include in the description.
+#' @param ... passed on to other methods.
 #'
 #' @export
 table_1 <-
-function( .data, key
+function( .data, key, .vars = vars(everything())
         , ...
         ){
     key <- rlang::enquo(key)
-    dots <- rlang::quos(...)
-    vv <- group_by_prepare(.data, !!!dots)
-    purrr::imap( vv$groups %>% rlang::exprs_auto_name()
+    kv <- group_by_prepare(.data, .dots = list(Key=key))
+
+    vars <- tidyselect::vars_select( tbl_vars(.data), !!!.vars
+                                   , .exclude=c("Key", all.names(key))
+                                   )
+    vv <- group_by_prepare(kv$data, .dots=vars)
+    purrr::map2( vv$groups
+               , vv$group_names
                , table_1_dispatcher
-               , key = key, .data = vv$data
+               , key = kv$groups[[1]], .data = vv$data
                ) %>%
         purrr::reduce(dplyr::union_all)
+}
+if(FALSE){#@testing
+    val <- table_1( iris, Species
+                  , vars('Petal Length'=Petal.Length, Petal.Width)
+                  )
+    expect_is(val, 'tbl')
+    expect_equal(names(val), c('Variable', 'Level', '(All)', 'setosa', 'versicolor', 'virginica'))
+
+
+    val <- table_1( iris, tools::toTitleCase(as.character(Species))
+                  , vars(everything()))
+    expect_is(val, 'tbl')
+    expect_equal(names(val), c('Variable', 'Level', '(All)', 'Setosa', 'Versicolor', 'Virginica'))
+    expect_true(all(c('Petal.Length', 'Petal.Width', 'Sepal.Length', 'Sepal.Width') %in% val$Variable))
 }
 
 #' @rdname table_1
@@ -83,14 +104,12 @@ if(FALSE){#@Testing
 #' @method table_1_dispatcher character
 #' @export
 table_1_dispatcher.character <- function(.data, var, name, ...){
-    test <- .data %>% utils::head() %>% pull(!!var)
-    var  <- rlang::as_quosure(as.name(var))
-    UseMethod("table_1_summarise", test)
+    callGeneric(.data, as.name(var), name=name,...)
 }
-if(FALSE){#@Testing
+if(FALSE){#@testing
     .data <- dplyr::mutate(iris, Size = ifelse(Sepal.Length > median(Sepal.Length), 'Big', 'Little'))
     result <- table_1_dispatcher( .data
-                                , quo(Species)
+                                , 'Species'
                                 , 'SPECIES'
                                 , rlang::parse_quo('Size', env=globalenv())
                                 )
@@ -136,15 +155,20 @@ if(FALSE){#@Testing
     expect_is(result, 'tbl')
     expect_equal(names(result), c('Variable', 'Level', '(All)', 'setosa', 'versicolor', 'virginica'))
     expect_equal(nrow(result), 1)
+
+    result2 <- iris %>%
+        dplyr::mutate(Big = Sepal.Length > median(Sepal.Length)) %>%
+        table_1_summarise( var  = rlang::as_quosure(as.name('Big'), environment())
+                         , name = 'Is Big?'
+                         , rlang::parse_quo('Species', env=globalenv())
+                         )
+
+    expect_identical(result, result2)
 }
 
 #' @method table_1_summarise character
 #' @export
 table_1_summarise.character <- function(.data, var, name, key, all.name = "(All)"){
-    if (inherits(.data, 'tbl_sql')){
-        if (!exists('Npct', dbplyr::base_odbc_scalar))
-            assign('Npct', value = Npct_sql, envir = dbplyr::base_odbc_scalar)
-    }
     pct <- rlang::sym('._PERCENT_.')
     .data %>%
         dplyr::group_by(!!key, add=TRUE) %>%
