@@ -129,7 +129,7 @@ table_1_summarise.logical <- function(.data, var, name, key, all.name = "(All)")
 if(FALSE){#@Testing
     result <- iris %>%
         dplyr::mutate(Big = Sepal.Length > median(Sepal.Length)) %>%
-        table_1_summarise.logical( var  = rlang::as_quosure(as.name('Big'))
+        table_1_summarise.logical( var  = rlang::as_quosure(as.name('Big'), environment())
                                  , name = 'Is Big?'
                                  , rlang::parse_quo('Species', env=globalenv())
                                  )
