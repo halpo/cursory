@@ -17,49 +17,49 @@ function( estimate  #< Estimate
 		, confidence = 0.95 #< confidence level
 		, ...
 		){
-	structure( estimate, class=c("confidence-interval", class(estimate))
-		     , bounds = data.frame(lower, upper)
-		     , confidence = confidence
-		     , ...)
+    assert_that( length(estimate) == length(lower)
+               , length(lower) == length(upper)
+               )
+    mapply( data.frame
+          , estimate=estimate
+          , lower=lower
+          , upper=upper
+          , SIMPLIFY=FALSE) %>%
+        lapply(`attr<-`, 'confidence', confidence) %>%
+        lapply(`class<-`, 'confidence-interval') %>%
+        lapply(structure, ...) %>%
+        `class<-`("list<confidence-interval>")
 }
 if(FALSE){#@testing
     # taken from confint example
     fit <- lm(100/mpg ~ disp + hp + wt + am, data = mtcars)
     bounds <- confint(fit)
 
-
     val <- ci(coef(fit), bounds[,1], bounds[,2])
-    expect_is(val, 'confidence-interval')
-    expect_equal( attr(val, 'bounds')$lower
-                , unname(bounds[,1])
-                )
-    expect_equal( attr(val, 'bounds')$upper
-                , unname(bounds[,2])
-                )
-    expect_equal(attr(val, 'confidence'), 0.95)
+    expect_is(val, 'list<confidence-interval>')
+    expect_true(is.list(val))
+    testextra::expect_all_inherit(val, 'confidence-interval')
 }
 
+#' @export
+`format.list<confidence-interval>`<-function(x, ...){
+    I(purrr::map_chr(x, format, ...))
+}
 
 #' @export
 `format.confidence-interval` <-
 function( x, justify="right", width=NULL
-        , digits = NULL
-        , ci.digits = NULL
+        , digits = attr(x, 'digits') %||% getOption('digits')
+        , ci.digits = attr(x, 'ci.digits') %||% digits
+        , span = attr(x, "span") %||% "\u2013"
         , ...){
-    if(is.null(digits))
-        digits <- attr(x, 'digits')
-	s <- NextMethod(width=NULL, digits = digits)
-
-    if(is.null(ci.digits))
-        ci.digits <- attr(x, 'ci.digits')
-    if(is.null(ci.digits) && !is.null(digits))
-        ci.digits <- digits
 	format(
-        ifelse( is.na(x), NA_character_
-		      , sprintf( "%s (%s\u2013%s)"
-		               , s
-		               , format(attr(x, 'bounds')$lower, digits = ci.digits, ...)
-		               , format(attr(x, 'bounds')$upper, digits = ci.digits, ...)
+        ifelse( is.na(x$estimate), NA_character_
+		      , sprintf( "%s (%s%s%s)"
+		               , format(x$estimate, digits = digits, ...)
+		               , format(x$lower, digits = ci.digits,...)
+		               , span
+		               , format(x$upper, digits = ci.digits, ...)
 		               )
               )
 	, justify=justify, width=width, ...)
@@ -68,10 +68,15 @@ if(FALSE){#@testing
     fit <- lm(100/mpg ~ disp + hp + wt + am, data = mtcars)
     bounds <- confint(fit)
     x <- ci(coef(fit), bounds[,1], bounds[,2])
-    val <- format(x, digits = 2, width =50)
+    format(x[[1]])
 
-    expect_is(val, 'character')
+    val <- format(x)
+
+    expect_is(val, 'AsIs')
     expect_match(val, "( |-|)(\\d+\\.\\d+) \\(( |-|)(\\d+\\.\\d+).( |-|)(\\d+\\.\\d+)\\)")
+
+
+    val <- format(x, width=50)
     expect_true(all(nchar(val)==50))
 }
 
@@ -79,20 +84,21 @@ if(FALSE){#@testing
 `print.confidence-interval` <-
 function(x		#< Object
 		, ...	#< arguments to format/print.
-		){
+		){ # nocov start
 	print(format(x, ...), quote=FALSE, ...)
 	invisible(x)
-}
+} # nocov end
+
 #' @export
-`c.confidence-interval` <-
+`c.list<confidence-interval>` <-
 function( x, ...){
     .list <- list(...)
-    stopifnot(all(sapply(.list, inherits, "confidence-interval")))
+    stopifnot(all(sapply(.list, inherits, "list<confidence-interval>")))
     structure( NextMethod()
              , bounds = do.call(rbind, c( list(attr(x, 'bounds'))
                                         , lapply(.list, attr, 'bounds')
                                         ))
-             , class = 'confidence-interval'
+             , class = 'list<confidence-interval>'
              )
 }
 if(FALSE){#@testing
@@ -100,10 +106,10 @@ if(FALSE){#@testing
     b <- ci(0, -2, 2)
 
     val <-c(a,b)
-    expect_is(val, 'confidence-interval')
+    expect_is(val, 'list<confidence-interval>')
     expect_length(val, 2)
-
-
+}
+if(FALSE){#@testing confidence intervals in grouped data frame operations.
     fit <- lm(100/mpg ~ disp + hp + wt + am, data = mtcars)
     bounds <- confint(fit)
     df <- tibble( variable = names(coef(fit))
@@ -112,4 +118,6 @@ if(FALSE){#@testing
                 , upper = bounds[,1]
                 )
     expect_silent(val2 <- group_by(df, variable) %>% mutate(ci=ci(estimate, lower, upper)))
+    expect_is(val2$ci, 'list<confidence-interval>')
+    expect_length(val2$ci, 5)
 }
