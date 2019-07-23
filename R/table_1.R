@@ -1,5 +1,5 @@
 #' @importFrom tidymargins with_margins
-#' @importFrom pkgcond assert_that
+#' @importFrom pkgcond assert_that pkg_error
 NULL
 utils::globalVariables('.')
 

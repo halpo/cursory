@@ -1,64 +1,65 @@
 #' Designate a numeric vector as a percent.
-#' @param x a numeric object.
+#'
+#' The percentage is stored as a formatted string with the original
+#' value as an attribute.  The formatted value is what will most often
+#' be needed but but allows for the original value to be recovered
+#' when the attribute is not stripped off.
+#'
+#' @param x a numeric object indicating a percentage.
 #' @param ... additional formatting arguments.
 #' @export
-percent <- 
-function( x     #< Object
-        , ...   #< attributes
-        ){
-    "Designate a numeric vector as a percent."
-    stopifnot(is.numeric(x))
-    structure(x, class = c("percent", class(x)), ...)
+percent <-
+function( x, ...){
+    structure( pct(x,...)
+             , raw = x
+             , class = "percent")
+}
+if(FALSE){#@testing
+    val <- percent(1/3)
+    expect_is(val, 'percent')
+    expect_true(is.character(val))
+    expect_equal(as.character(val), "33.33%")
+    expect_identical(attr(val, 'raw'), 1/3)
 }
 
-#' @describeIn percent Convert to character.
+# @describeIn percent Format a number as a percent.
 #' @export
-as.character.percent <- 
+pct <-
 function( x
-        , places    = NULL  #< Places to show after period
-        , threshold = NULL  #< minimum percent to show.
+        , places    = attr(x, 'places') %||% getOption("percent::places", 2)  #< Places to show after period
+        , threshold = attr(x, 'threshold') %||% getOption("percent::threshold", 1*10^-places)  #< minimum percent to show.
         , ...               #< ignored
         ){
-    if (is.null(places))
-        places <- attr(x, "places") %||% getOption("percent::places") %||%  2 
-    if (is.null(threshold))
-        threshold <- attr(x, 'threshold') %||% getOption("percent::threshold") %||% -Inf
-    fmt <- paste0("%2.", places, "f%%")
-    str <- ifelse( x < threshold
-                 , sprintf("< %s", sprintf(fmt, threshold))
+    assert_that(is.numeric(x))
+    fmt <- paste0( "%2.", places, "f%%")
+    str <- ifelse( abs(x) < threshold
+                 , sprintf("< %s", sprintf(fmt, sign(x)*threshold))
                  , sprintf(fmt, x*100)
-    )
+                 )
+}
+if(FALSE){#@testing
+    val <- pct(1/3, places=3)
+    expect_equal(val, "33.333%")
+
+    val <- pct(0.009, places=2)
+    expect_equal(val, "< 0.01%")
 }
 
-#' @describeIn percent format the percent.
-#' @param places    Number of places after decimal to show.
-#' @param threshold Minimum percent to show.
-#' 
+# @describeIn percent format the percent.
 #' @export
-format.percent <- 
-function( x
-        , places    = NULL  #< Places to show after period
-        , threshold = NULL  #< minimum percent to show.
-        , ... #< currently ignored
-        ){
-    format(as.character.percent(x, places=places, threshold = threshold), ...)
+format.percent <-
+function( x, ...){
+    if(is.numeric(x)) x <- pct(x, ...)
+    format(x, ...)
+}
+if(FALSE){#@testing
+    val <- format.percent(1/3)
+    expect_identical(val, "33.33%")
 }
 
+
 #' @export
-print.percent <- function(x,...){
+print.percent <- function(x,...){# nocov start
     print(noquote(format.percent(x,...)), ...)
     invisible(x)
-}
-
-
-
-if(F){# Testing
-
-    percent(1/3)
-    data.frame(x=percent(1/3:4))
-
-
-    class(percent(matrix(1:4, 2,2)/5))
-
-
-}
+} # nocov end
