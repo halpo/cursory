@@ -104,7 +104,7 @@ if(FALSE){#@Testing
 #' @method table_1_dispatcher character
 #' @export
 table_1_dispatcher.character <- function(.data, var, name, ...){
-    callGeneric(.data, as.name(var), name=name,...)
+    methods::callGeneric(.data, as.name(var), name=name,...)
 }
 if(FALSE){#@testing
     .data <- dplyr::mutate(iris, Size = ifelse(Sepal.Length > median(Sepal.Length), 'Big', 'Little'))

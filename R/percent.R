@@ -6,6 +6,8 @@
 #' when the attribute is not stripped off.
 #'
 #' @param x a numeric object indicating a percentage.
+#' @param places Places to show after the decimal point.
+#' @param threshold The minimum absolute percentage to show.
 #' @param ... additional formatting arguments.
 #' @export
 percent <-
@@ -22,7 +24,7 @@ if(FALSE){#@testing
     expect_identical(attr(val, 'raw'), 1/3)
 }
 
-# @describeIn percent Format a number as a percent.
+#' @describeIn percent Format a number as a percent.
 #' @export
 pct <-
 function( x
@@ -45,7 +47,6 @@ if(FALSE){#@testing
     expect_equal(val, "< 0.01%")
 }
 
-# @describeIn percent format the percent.
 #' @export
 format.percent <-
 function( x, ...){

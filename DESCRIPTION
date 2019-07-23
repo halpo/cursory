@@ -16,16 +16,21 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 6.1.1
 Imports:
     dplyr,
+    methods,
     pkgcond,
     purrr,
     rlang,
+    tibble,
     tidymargins,
+    tidyr,
     tidyselect
 Suggests:
     covr,
+    forcats,
     datasets,
     dbplyr,
     testthat,
+    testextra,
     DBI,
     RSQLite
 URL: https://github.com/halpo/cursory
