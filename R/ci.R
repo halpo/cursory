@@ -69,13 +69,13 @@ if(FALSE){#@testing
     x <- ci(coef(fit), bounds[,1], bounds[,2])
     format(x[[1]])
 
-    val <- format(x, digits=2)
+    val <- format(x, digits=2, span=',')
 
     expect_is(val, 'AsIs')
-    expect_match(val, "( |-|)(\\d+(\\.\\d+)?) \\(( |-|)(\\d+\\.\\d+).( |-|)(\\d+\\.\\d+)\\)")
+    expect_match(val, "( |-|)(\\d+(\\.\\d+)?) \\(( |-|)(\\d+\\.\\d+),( |-|)(\\d+\\.\\d+)\\)")
 
 
-    val <- format(x, width=50)
+    val <- format(x, width=50, span=',')
     expect_true(all(nchar(val)==50))
 }
 
