@@ -55,11 +55,10 @@ function( x, justify="right", width=NULL
         , ...){
 	format(
         ifelse( is.na(x$estimate), NA_character_
-		      , sprintf( "%s (%s%s%s)"
+		      , sprintf( "%s (%s)"
 		               , format(x$estimate, digits = digits, ...)
-		               , format(x$lower, digits = ci.digits,...)
-		               , span
-		               , format(x$upper, digits = ci.digits, ...)
+		               , paste( format(c(x$lower, x$upper), digits = ci.digits,...)
+		                      , collapse= span)
 		               )
               )
 	, justify=justify, width=width, ...)
@@ -70,10 +69,10 @@ if(FALSE){#@testing
     x <- ci(coef(fit), bounds[,1], bounds[,2])
     format(x[[1]])
 
-    val <- format(x)
+    val <- format(x, digits=2)
 
     expect_is(val, 'AsIs')
-    expect_match(val, "( |-|)(\\d+\\.\\d+) \\(( |-|)(\\d+\\.\\d+).( |-|)(\\d+\\.\\d+)\\)")
+    expect_match(val, "( |-|)(\\d+(\\.\\d+)?) \\(( |-|)(\\d+\\.\\d+).( |-|)(\\d+\\.\\d+)\\)")
 
 
     val <- format(x, width=50)
