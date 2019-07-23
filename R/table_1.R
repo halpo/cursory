@@ -53,9 +53,6 @@ if(FALSE){#@testing
     expect_is(val, 'tbl')
     expect_equal(names(val), c('Variable', 'Level', '(All)', 'Setosa', 'Versicolor', 'Virginica'))
     expect_true(all(c('Petal.Length', 'Petal.Width', 'Sepal.Length', 'Sepal.Width') %in% val$Variable))
-
-
-    knitr::kable(val)
 }
 
 #' @rdname table_1

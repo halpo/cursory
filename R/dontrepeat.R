@@ -7,6 +7,7 @@ dontrepeat <- function(x, replace.with='')
     structure( add_class(forcats::fct_inorder(x), 'dontrepeat')
              , replace.with=replace.with)
 
+#' @export
 format.dontrepeat <- function(x, ..., replace.with = attr(x, 'replace.with') %||% ''){
     repeats <- c(FALSE, head(x, -1) == tail(x, -1))
     ifelse(repeats, format(replace.with, ...), NextMethod())
@@ -52,9 +53,9 @@ as.vector.dontrepeat <- function(x, mode="any"){
 }
 
 if(FALSE){#@testing dontrepeat in a tbl
-    x <- tibble( x = dontrepeat(c('a','a', 'b', 'b', 'b'), '.')
-               , y = 1:5
-               )
+    x <- tibble::tibble( x = dontrepeat(c('a','a', 'b', 'b', 'b'), '.')
+                       , y = 1:5
+                       )
     expect_is(x$x, 'dontrepeat')
     expect_is(head(x, 5)$x, 'dontrepeat')
 
