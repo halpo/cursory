@@ -37,7 +37,8 @@ function( .data, key, .vars = vars(everything())
                , table_1_dispatcher
                , key = kv$groups[[1]], .data = vv$data
                ) %>%
-        purrr::reduce(dplyr::union_all)
+        purrr::reduce(dplyr::union_all) %>%
+        mutate_at("Variable", dontrepeat)
 }
 if(FALSE){#@testing
     val <- table_1( iris, Species
@@ -52,6 +53,9 @@ if(FALSE){#@testing
     expect_is(val, 'tbl')
     expect_equal(names(val), c('Variable', 'Level', '(All)', 'Setosa', 'Versicolor', 'Virginica'))
     expect_true(all(c('Petal.Length', 'Petal.Width', 'Sepal.Length', 'Sepal.Width') %in% val$Variable))
+
+
+    knitr::kable(val)
 }
 
 #' @rdname table_1

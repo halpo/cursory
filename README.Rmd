@@ -64,3 +64,17 @@ cursory_if(iris, is.numeric, lst(Mean = mean, 'Std.Dev.' = sd))
 cursory_at(iris, vars(ends_with("Length")), var)
 ```
 
+# `table_1`
+
+The `cursory` package also provides a `table_1` function that allows for
+describing variables of a dataset for different subsets automatically.
+This is useful in creating the very common demographics "table 1".
+
+```{r}
+table_1(iris, Species)
+```
+
+The `table_1()` function also tags the Variable column as a `dontrepeat`
+class column which make repeating values in columns not appear when 
+formatted, so that tables are easier to read.
+

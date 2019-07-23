@@ -1,10 +1,13 @@
+#' @importFrom utils head tail
+NULL
+
 #' Add to object helpers
 #'
 #' @param x   object to alter
 #' @param new new characteristic
 #'
 #' @description
-#' These function make using [magrittr] functions easier when altering
+#' These function make using pipe functions easier when altering
 #' an object.
 #'
 #' @export
@@ -72,8 +75,11 @@ function( value
 }
 if(FALSE){#@testing
     x <- dontrepeat(c('a','a', 'b', 'b', 'b'), '.')
-    y <- carry_forward(c('c', 'd', 'd'), x)
+    y <- carry_forward(factor(c('c', 'd', 'd')), x)
     expect_identical(attributes(x), attributes(y))
+
+    z <- carry_forward(factor(c(1L, 2L, 2L)), x)
+    expect_identical(attributes(x), attributes(z))
 }
 
 

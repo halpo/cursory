@@ -93,3 +93,40 @@ cursory_at(iris, vars(ends_with("Length")), var)
 | :----------- | --------: |
 | Sepal.Length | 0.6856935 |
 | Petal.Length | 3.1162779 |
+
+# `table_1`
+
+The `cursory` package also provides a `table_1` function that allows for
+describing variables of a dataset for different subsets automatically.
+This is useful in creating the very common demographics “table 1”.
+
+``` r
+table_1(iris, Species)
+```
+
+| Variable     | Level  | (All) | setosa | versicolor | virginica |
+| :----------- | :----- | :---- | :----- | :--------- | :-------- |
+| Sepal.Length | Min    | 4.300 | 4.300  | 4.900      | 4.900     |
+|              | Median | 5.800 | 5.000  | 5.900      | 6.500     |
+|              | Mean   | 5.843 | 5.006  | 5.936      | 6.588     |
+|              | Max    | 7.900 | 5.800  | 7.000      | 7.900     |
+|              | SD     | 0.828 | 0.352  | 0.516      | 0.636     |
+| Sepal.Width  | Min    | 2.000 | 2.300  | 2.000      | 2.200     |
+|              | Median | 3.000 | 3.400  | 2.800      | 3.000     |
+|              | Mean   | 3.057 | 3.428  | 2.770      | 2.974     |
+|              | Max    | 4.400 | 4.400  | 3.400      | 3.800     |
+|              | SD     | 0.436 | 0.379  | 0.314      | 0.322     |
+| Petal.Length | Min    | 1.000 | 1.000  | 3.000      | 4.500     |
+|              | Median | 4.300 | 1.500  | 4.300      | 5.500     |
+|              | Mean   | 3.758 | 1.462  | 4.260      | 5.552     |
+|              | Max    | 6.900 | 1.900  | 5.100      | 6.900     |
+|              | SD     | 1.765 | 0.174  | 0.470      | 0.552     |
+| Petal.Width  | Min    | 0.100 | 0.100  | 1.000      | 1.400     |
+|              | Median | 1.300 | 0.200  | 1.300      | 2.000     |
+|              | Mean   | 1.199 | 0.246  | 1.326      | 2.026     |
+|              | Max    | 2.500 | 0.600  | 1.800      | 2.500     |
+|              | SD     | 0.762 | 0.105  | 0.198      | 0.275     |
+
+The `table_1()` function also tags the Variable column as a `dontrepeat`
+class column which make repeating values in columns not appear when
+formatted, so that tables are easier to read.

@@ -4,7 +4,8 @@
 #' @param replace.with what to replace the value with.
 #' @export
 dontrepeat <- function(x, replace.with='')
-    structure(x, class=c('dontrepeat', oldClass(x)), replace.with=replace.with)
+    structure( add_class(forcats::fct_inorder(x), 'dontrepeat')
+             , replace.with=replace.with)
 
 format.dontrepeat <- function(x, ..., replace.with = attr(x, 'replace.with') %||% ''){
     repeats <- c(FALSE, head(x, -1) == tail(x, -1))
@@ -28,14 +29,26 @@ if(FALSE){#@testing
     expect_identical(val, c('    a', '    -', '    b', '    -', '    -'))
 }
 
-`[.dontrepeat` <- function(x,...)carry_forward(NextMethod())
-`c.dontrepeat` <- function(x,...)carry_forward(NextMethod())
+#' @export
+`[.dontrepeat` <- function(x,...)carry_forward(NextMethod(), x)
+#' @export
+`c.dontrepeat` <- function(x,...)carry_forward(NextMethod(), x)
 if(FALSE){
     x <- dontrepeat(c('a','a', 'b', 'b', 'b'), '.')
     val <- x[TRUE]
 
     expect_is(val, 'dontrepeat')
     expect_equal(attr(val, 'replace.with'), '.')
+}
+
+# This function is required to ensure that knitr::kable output
+# is correct.
+#' @export
+as.vector.dontrepeat <- function(x, mode="any"){
+    if (mode=="list") carry_forward(as.list(x), x) else
+    if (mode == "any" || mode == "character")
+        format(x)
+    else NextMethod()
 }
 
 if(FALSE){#@testing dontrepeat in a tbl
@@ -48,5 +61,9 @@ if(FALSE){#@testing dontrepeat in a tbl
 
     expect_equal( format(as.data.frame(x))$x
                 , I(c('a', '.', 'b', '.', '.')))
+
+    M <- as.matrix(x)
+    expect_identical(M, cbind( x=c('a', '.', 'b', '.', '.')
+                             , y=1:5))
 }
 
